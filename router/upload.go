@@ -60,9 +60,7 @@ func Upload(w http.ResponseWriter, r *http.Request) {
 	path.WriteString(config.UploadDir)
 	path.WriteString("/")
 	ss := strings.Split(r.URL.Path, "/")
-	logger.Debug("len(ss)=", len(ss))
 	for i, s := range ss {
-		logger.Printf(logger.DEBUG, "s[%d]=%s\n", i, s)
 		if s != "" {
 			if i == len(ss)-1 {
 				fname.WriteString(s)
