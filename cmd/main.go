@@ -10,41 +10,48 @@ import (
 	"gopkg.in/ini.v1"
 )
 
-func main() {
-	// Default values
-	baseUri := "/"
-	port := "8080"
-	uploadDir := "upload"
-	downloadDir := "files"
-	logLevel := "debug"
+// Default values
+var configFile = ".env"
+var baseUri = "/"
+var port = "8080"
+var uploadDir = "upload"
+var downloadDir = "files"
+var logLevel = "debug"
 
-	// Parse .env file
-	if env, err := ini.Load(".env"); err == nil {
-		if v, e := env.Section("").GetKey("BASE_URI"); e == nil {
-			baseUri = v.String()
-		}
-		if v, e := env.Section("").GetKey("PORT"); e == nil {
-			port = v.String()
-		}
-		if v, e := env.Section("").GetKey("UPLOAD_DIR"); e == nil {
-			uploadDir = v.String()
-		}
-		if v, e := env.Section("").GetKey("FILE_DIR"); e == nil {
-			downloadDir = v.String()
-		}
-		if v, e := env.Section("").GetKey("LOG_LEVEL"); e == nil {
-			logLevel = v.String()
-		}
-	}
-
+func init() {
 	// Parse flags
-	baseUriParse := flag.String("base-uri", "", "Base URI")
-	portParse := flag.String("port", "", "Port")
-	uploadDirParse := flag.String("upload-dir", "", "Upload directory")
-	downloadDirParse := flag.String("download-dir", "", "File directory")
-	logLevelParse := flag.String("log-level", "", "Log level")
+	configFileParse := flag.String("config", configFile, "Config file")
+	baseUriParse := flag.String("base-uri", baseUri, "Base URI")
+	portParse := flag.String("port", port, "Port")
+	uploadDirParse := flag.String("upload-dir", uploadDir, "Upload directory")
+	downloadDirParse := flag.String("download-dir", downloadDir, "File directory")
+	logLevelParse := flag.String("log-level", logLevel, "Log level")
 
 	flag.Parse()
+
+	// Set config file
+	if *configFileParse != "" {
+		configFile = *configFileParse
+	}
+
+	// Parse configFile file
+	if env, err := ini.Load(configFile); err == nil {
+		if v, e := env.Section("").GetKey("BASE_URI"); e == nil {
+			*baseUriParse = v.String()
+		}
+		if v, e := env.Section("").GetKey("PORT"); e == nil {
+			*portParse = v.String()
+		}
+		if v, e := env.Section("").GetKey("UPLOAD_DIR"); e == nil {
+			*uploadDirParse = v.String()
+		}
+		if v, e := env.Section("").GetKey("FILE_DIR"); e == nil {
+			*downloadDirParse = v.String()
+		}
+		if v, e := env.Section("").GetKey("LOG_LEVEL"); e == nil {
+			*logLevelParse = v.String()
+		}
+	}
 
 	if *baseUriParse != "" {
 		baseUri = *baseUriParse
@@ -63,7 +70,9 @@ func main() {
 	}
 
 	logger.InitStr(logLevel)
+}
 
+func main() {
 	log.Printf("Server started: %s:%s%s", "http://localhost", port, baseUri)
 	log.Printf("Upload directory: %s", uploadDir)
 	log.Printf("Download directory: %s", downloadDir)
