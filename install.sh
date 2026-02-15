@@ -57,11 +57,11 @@ VERSION=$(cat ${ROOT}/VERSION)
 
 # Default configuration
 cat > ${BUILD_DIR}/${PKG_NAME}/${PREFIX}/etc/fupload.d/config << EOF
-# Listen port
-listen=8880
-
-# VNC server address
-vnc=localhost:5901
+BASE_URI = /
+PORT = 8880
+UPLOAD_DIR = /upload
+FILE_DIR = /
+LOG_LEVEL = debug
 EOF
 
 # Embed version
@@ -72,7 +72,7 @@ sed "s/cmd.Version = \"\"/cmd.Version = \"${VERSION}\"/g" ${ROOT}/fupload.go > $
 go build -C ${BUILD_DIR}/tmp/ -o ${BUILD_DIR}/${PKG_NAME}/${PREFIX}/usr/bin/fupload
 
 # Bash completion
-${BUILD_DIR}/${PKG_NAME}/${PREFIX}/usr/bin/fupload -b > ${BUILD_DIR}/${PKG_NAME}/${PREFIX}/usr/share/bash-completion/completions/fupload
+${BUILD_DIR}/${PKG_NAME}/${PREFIX}/usr/bin/fupload --bash-completion > ${BUILD_DIR}/${PKG_NAME}/${PREFIX}/usr/share/bash-completion/completions/fupload
 
 # Service script
 cat > ${BUILD_DIR}/${PKG_NAME}/${PREFIX}/etc/systemd/system/fupload.service << EOF
@@ -85,7 +85,7 @@ StartLimitIntervalSec=0
 Type=simple
 Restart=yes
 RestartSec=10
-ExecStart=${PREFIX}/usr/bin/fupload -c ${PREFIX}/${FUPLOAD_CONFIG}
+ExecStart=${PREFIX}/usr/bin/fupload -c ${PREFIX}/${FUPLOAD_CONFIG}/config
 
 [Install]
 WantedBy=multi-user.target
@@ -124,6 +124,9 @@ systemctl stop fupload.service
 systemctl disable fupload.service
 systemctl daemon-reload
 EOF
+
+chmod +x ${BUILD_DIR}/${PKG_NAME}/DEBIAN/postinst
+chmod +x ${BUILD_DIR}/${PKG_NAME}/DEBIAN/postrm
 
 # Build package
 dpkg-deb --build ${BUILD_DIR}/${PKG_NAME}

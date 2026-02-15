@@ -83,7 +83,7 @@ func Init() {
 		if v, e := env.Section("").GetKey("UPLOAD_DIR"); e == nil && v.String() != "" {
 			uploadDir = v.String()
 		}
-		if v, e := env.Section("").GetKey("FILE_DIR"); e == nil && v.String() != "" {
+		if v, e := env.Section("").GetKey("DOWNLOAD_DIR"); e == nil && v.String() != "" {
 			downloadDir = v.String()
 		}
 		if v, e := env.Section("").GetKey("LOG_LEVEL"); e == nil && v.String() != "" {
