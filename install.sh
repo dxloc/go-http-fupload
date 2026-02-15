@@ -42,7 +42,7 @@ if [ "${PKG_NAME}" = "" ]; then
 fi
 
 if [ "${FUPLOAD_CONFIG}" = "" ]; then
-    FUPLOAD_CONFIG=${PREFIX}/etc/default/fupload.d
+    FUPLOAD_CONFIG=${PREFIX}/etc/fupload.d
 fi
 
 mkdir -p ${BUILD_DIR}/${PKG_NAME}/${PREFIX}/usr/bin
@@ -57,11 +57,11 @@ VERSION=$(cat ${ROOT}/VERSION)
 
 # Default configuration
 cat > ${BUILD_DIR}/${PKG_NAME}/${PREFIX}/etc/fupload.d/config << EOF
-BASE_URI = /
-PORT = 8880
-UPLOAD_DIR = /upload
-FILE_DIR = /
-LOG_LEVEL = debug
+BASE_URI=/
+PORT=8880
+UPLOAD_DIR=/upload
+DOWNLOAD_DIR=/
+LOG_LEVEL=debug
 EOF
 
 # Embed version

@@ -95,7 +95,6 @@ func Init() {
 }
 
 func Main() {
-
 	log.Printf("Server started: %s:%s%s", "http://localhost", port, baseUri)
 	log.Printf("Upload directory: %s", uploadDir)
 	log.Printf("Download directory: %s", downloadDir)
