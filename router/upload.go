@@ -59,7 +59,8 @@ func Upload(w http.ResponseWriter, r *http.Request) {
 	)
 	path.WriteString(config.UploadDir)
 	path.WriteString("/")
-	ss := strings.Split(r.URL.Path, "/")
+	url := ProxyPass(r.URL.Path)
+	ss := strings.Split(url, "/")
 	for i, s := range ss {
 		if s != "" {
 			if i == len(ss)-1 {
