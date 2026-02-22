@@ -66,7 +66,7 @@ EOF
 
 # Embed version
 mkdir -p ${BUILD_DIR}/tmp
-sed "s/cmd.Version = \"\"/cmd.Version = \"${VERSION}\"/g" ${ROOT}/fupload.go > ${BUILD_DIR}/tmp/fupload.go
+sed "s/\/\/__ATTACHED_VERSION__/cmd.Version = \"${VERSION}\"/g" ${ROOT}/fupload.go > ${BUILD_DIR}/tmp/fupload.go
 
 # Build binary
 go build -C ${BUILD_DIR}/tmp/ -o ${BUILD_DIR}/${PKG_NAME}/${PREFIX}/usr/bin/fupload

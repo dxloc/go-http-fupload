@@ -3,7 +3,7 @@ package main
 import "go-http-fupload/cmd"
 
 func init() {
-	cmd.Version = ""
+	//__ATTACHED_VERSION__
 	cmd.Init()
 }
 
