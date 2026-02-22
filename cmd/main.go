@@ -13,7 +13,7 @@ import (
 )
 
 // Default values
-var configFile = ".env"
+var configFile = ""
 var baseUri = "/"
 var port = "8080"
 var uploadDir = "upload"
@@ -90,7 +90,18 @@ func Init() {
 			logLevel = v.String()
 		}
 	}
-
+	if baseUri[0] != '/' {
+		baseUri = "/" + baseUri
+	}
+	if baseUri[len(baseUri)-1] != '/' {
+		baseUri += "/"
+	}
+	if uploadDir[len(uploadDir)-1] != '/' {
+		uploadDir += "/"
+	}
+	if downloadDir[len(downloadDir)-1] != '/' {
+		downloadDir += "/"
+	}
 	logger.InitStr(logLevel)
 }
 
