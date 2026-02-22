@@ -22,6 +22,23 @@ type Config struct {
 
 var config Config
 
+func ProxyPass(url string) string {
+	if len(url) < len(config.BaseUri) {
+		api.ThrowMessage(http.StatusNotFound, http.StatusText(http.StatusNotFound))
+	}
+	if url[:len(config.BaseUri)] == config.BaseUri {
+		if len(url) == len(config.BaseUri) {
+			url = "/"
+		} else {
+			url = "/" + url[len(config.BaseUri):]
+		}
+	} else {
+		api.ThrowMessage(http.StatusNotFound, http.StatusText(http.StatusNotFound))
+	}
+
+	return url
+}
+
 func NewRouter(cfg Config) *mux.Router {
 	var handler http.Handler
 

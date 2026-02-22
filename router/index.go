@@ -40,13 +40,13 @@ func (ie IndexEntry) Compare(a, b IndexEntry) int {
 	}
 }
 
-func listFiles(base, folderPath string) []IndexEntry {
+func listFiles(url, folderPath string) []IndexEntry {
 	var ls []IndexEntry
 	var name strings.Builder
 	var fullPath strings.Builder
 
-	if entries, e := os.ReadDir(base + folderPath); e != nil {
-		logger.Error(e, "read dir ", base+folderPath)
+	if entries, e := os.ReadDir(folderPath); e != nil {
+		logger.Error(e, "read dir ", folderPath)
 		api.ThrowError(http.StatusInternalServerError, e)
 	} else {
 		for _, entry := range entries {
@@ -54,12 +54,13 @@ func listFiles(base, folderPath string) []IndexEntry {
 				name.Reset()
 				name.WriteString(entry.Name())
 				fullPath.Reset()
-				fullPath.WriteString(folderPath)
+				fullPath.WriteString(url)
 				if info.IsDir() {
 					name.WriteString("/")
 				}
 				fullPath.WriteString(name.String())
 				a := dom.NewElement("a", name.String(), dom.NewHref(fullPath.String()))
+				logger.Debug(a.String())
 				size := commaFormat(info.Size())
 				if info.IsDir() {
 					size = "-"
@@ -86,11 +87,11 @@ func listFiles(base, folderPath string) []IndexEntry {
 	s := gosort.NewSorter[IndexEntry](0)
 	s.Sort(ls, 0)
 
-	if folderPath != "/" {
+	if url != "/" {
 		name.Reset()
 		fullPath.Reset()
 		name.WriteString("../")
-		ss := strings.Split(folderPath, "/")
+		ss := strings.Split(url, "/")
 		for i := 0; i < len(ss)-2; i++ {
 			if ss[i] != "" {
 				fullPath.WriteString("/")
@@ -108,30 +109,43 @@ func listFiles(base, folderPath string) []IndexEntry {
 }
 
 func Index(w http.ResponseWriter, r *http.Request) {
-	uri := r.URL.Path
-	path := config.DownloadDir + uri
+	var path strings.Builder
 
-	if info, e := os.Stat(path); e != nil {
+	uri := ProxyPass(r.URL.Path)
+	path.WriteString(config.DownloadDir)
+
+	for i := 1; i < len(uri); i++ {
+		if uri[i-1] == '/' && uri[i] == '/' {
+			continue
+		}
+		path.WriteByte(uri[i])
+	}
+
+	if info, e := os.Stat(path.String()); e != nil {
 		logger.Error(e, "stat ", path)
 		if os.IsNotExist(e) {
 			api.ThrowError(http.StatusNotFound, e)
 		}
 	} else {
 		if !info.IsDir() {
-			http.ServeFile(w, r, path)
+			http.ServeFile(w, r, path.String())
 			return
 		} else if r.URL.Path[len(r.URL.Path)-1] != '/' {
-			api.ThrowMessage(http.StatusBadRequest, "folder path must ends with '/'")
+			api.ThrowMessage(http.StatusNotFound, http.StatusText(http.StatusNotFound))
 			return
 		}
 	}
 
-	ls := listFiles(config.DownloadDir, uri)
+	logger.Debug("url=", r.URL.Path)
+	logger.Debug("uri=", uri)
+	logger.Debug("path=", path.String())
+
+	ls := listFiles(r.URL.Path, path.String())
 
 	doc := dom.NewDocument("Simple upload server", "", "")
 	body := doc.Body()
 
-	body.AddElement(dom.NewHeading(1, "Index of "+uri))
+	body.AddElement(dom.NewHeading(1, "Index of "+r.URL.Path))
 	body.AddElement(dom.NewTable(ls, dom.NewAttr("style", "width:100%")))
 
 	w.Write([]byte(doc.Serialize()))
