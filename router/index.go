@@ -60,7 +60,6 @@ func listFiles(url, folderPath string) []IndexEntry {
 				}
 				fullPath.WriteString(name.String())
 				a := dom.NewElement("a", name.String(), dom.NewHref(fullPath.String()))
-				logger.Debug(a.String())
 				size := commaFormat(info.Size())
 				if info.IsDir() {
 					size = "-"
@@ -135,10 +134,6 @@ func Index(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-
-	logger.Debug("url=", r.URL.Path)
-	logger.Debug("uri=", uri)
-	logger.Debug("path=", path.String())
 
 	ls := listFiles(r.URL.Path, path.String())
 
