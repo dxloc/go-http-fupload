@@ -42,7 +42,7 @@ if [ "${PKG_NAME}" = "" ]; then
 fi
 
 if [ "${FUPLOAD_CONFIG}" = "" ]; then
-    FUPLOAD_CONFIG=${PREFIX}/etc/fupload.d
+    FUPLOAD_CONFIG=/etc/fupload.d
 fi
 
 mkdir -p ${BUILD_DIR}/${PKG_NAME}/${PREFIX}/usr/bin
@@ -56,7 +56,8 @@ mkdir -p ${BUILD_DIR}/${PKG_NAME}/${PREFIX}/DEBIAN
 VERSION=$(cat ${ROOT}/VERSION)
 
 # Default configuration
-cat > ${BUILD_DIR}/${PKG_NAME}/${PREFIX}/etc/fupload.d/config << EOF
+cat > ${BUILD_DIR}/${PKG_NAME}/${PREFIX}/${FUPLOAD_CONFIG}/config.example << EOF
+# File ${PREFIX}/${FUPLOAD_CONFIG}/config
 BASE_URI=/
 PORT=8880
 UPLOAD_DIR=/upload
