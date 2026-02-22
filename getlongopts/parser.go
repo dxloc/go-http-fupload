@@ -148,7 +148,10 @@ func (p *Parser) BashCompletion(progname string) string {
 
 func (p *Parser) Usage() string {
 	var s strings.Builder
-	s.WriteString("Usage: " + os.Args[0] + " [options]\n")
+	s.WriteString("Usage:\n")
+	s.WriteString("  " + os.Args[0] + " [options]\n")
+	s.WriteString("\n")
+	s.WriteString("Options:\n")
 	for _, opt := range p.opts {
 		if opt.Short == "" && opt.Long == "" {
 			continue
