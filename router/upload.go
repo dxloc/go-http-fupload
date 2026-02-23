@@ -1,6 +1,7 @@
 package router
 
 import (
+	"crypto/sha256"
 	"encoding/base64"
 	"fmt"
 	"go-http-fupload/api"
@@ -18,35 +19,79 @@ const (
 	TypeRaw
 )
 
+const SumSize = sha256.Size
+
+type UploadResp struct {
+	Name string `json:"name"`
+	Sum  string `json:"sum"`
+}
+
+func ioReadAndSum(r io.Reader, dataType int) ([]byte, string, error) {
+	var data []byte
+	var e error
+
+	n := 512
+	if dataType == TypeBase64 {
+		n = base64.StdEncoding.EncodedLen(512)
+	}
+	b := make([]byte, 0, n)
+	h := sha256.New()
+	done := false
+
+	// Read and sum chunks of data
+	for {
+		if done {
+			break
+		}
+		if n, e = r.Read(b[:cap(b)]); e != nil {
+			done = true
+			if e == io.EOF {
+				e = nil
+			}
+		}
+		if e != nil || n == 0 {
+			break
+		}
+		if dataType == TypeBase64 {
+			if n, e = base64.StdEncoding.Decode(b, b[:n]); e != nil {
+				done = true
+				break
+			}
+		}
+		data = append(data, b[:n]...)
+		h.Write(b[:n])
+	}
+	if e != nil {
+		return nil, "", e
+	}
+	if len(data) == 0 {
+		return nil, "", nil
+	}
+
+	return data, base64.StdEncoding.EncodeToString(h.Sum(nil)), nil
+}
+
 func Upload(w http.ResponseWriter, r *http.Request) {
 	var path strings.Builder
 	var fname strings.Builder
 	var data []byte
+	var dType int
+	var sum string
 	var e error
 
 	t := time.Now()
 	contentType := r.Header.Get("Content-Type")
 	switch contentType {
 	case "application/octet-stream":
-		if data, e = io.ReadAll(r.Body); e != nil {
-			logger.Error(e, "read body")
-			api.ThrowError(http.StatusInternalServerError, e)
-		}
+		dType = TypeRaw
 	case "application/base64":
-		if b64, e := io.ReadAll(r.Body); e != nil {
-			logger.Error(e, "read body base64")
-			api.ThrowError(http.StatusInternalServerError, e)
-		} else {
-			data = make([]byte, base64.URLEncoding.DecodedLen(len(b64)))
-			if n, e := base64.URLEncoding.Decode(data, b64); e != nil {
-				logger.Error(e, "decode base64")
-				api.ThrowError(http.StatusBadRequest, e)
-			} else if n == 0 {
-				api.ThrowMessage(http.StatusBadRequest, "empty decoded data")
-			}
-		}
+		dType = TypeBase64
 	default:
 		api.ThrowMessage(http.StatusBadRequest, "invalid content type")
+	}
+	if data, sum, e = ioReadAndSum(r.Body, dType); e != nil {
+		logger.Error(e, "read body ", contentType)
+		api.ThrowError(http.StatusInternalServerError, e)
 	}
 	if len(data) == 0 {
 		api.ThrowMessage(http.StatusBadRequest, "empty data")
@@ -102,8 +147,5 @@ func Upload(w http.ResponseWriter, r *http.Request) {
 	}
 
 	writter := api.NewApiResponseWritter(w)
-	writter.Response(http.StatusCreated, nil, api.HttpHeader{
-		Key:   "Location",
-		Value: strings.Replace(pathStr, config.UploadDir, "", 1),
-	})
+	writter.Response(http.StatusCreated, UploadResp{Name: fname.String(), Sum: sum})
 }

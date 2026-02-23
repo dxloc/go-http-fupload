@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Simple Upload</title>
+  <style>
+    iframe {
+      border: none
+    }
+  </style>
+</head>
+
+<body>
+  <h1>Upload files</h1>
+  <form>
+    <label style="display: none">
+      <input type="file" multiple id="files">
+    </label>
+    <button id="btn">Choose files</button>
+  </form>
+  <p>You can list and downloadable files <a href="/download/">here</a>.</p>
+  <p id="progess"></p>
+  <ul id="files-list"></ul>
+</body>
+<script>
+  const files = document.getElementById('files');
+  const btn = document.getElementById('btn');
+  const progress = document.getElementById('progess');
+  const filesList = document.getElementById('files-list');
+
+  btn.addEventListener('click', e => {
+    e.preventDefault();
+    files.click();
+  });
+
+  files.addEventListener('change', () => {
+    btn.disabled = true;
+
+    const fileList = files.files;
+    if (!fileList.length) {
+      files.value = null;
+      btn.disabled = false;
+      return;
+    }
+
+    let uploads = [];
+    let uploaded = 0;
+    let uploadedFiles = [];
+
+    progress.innerText = `Progress: ${uploaded}/${fileList.length}`;
+
+    for (let i = 0; i < fileList.length; i++) {
+      const file = fileList.item(i);
+      let sum = "";
+
+      uploads.push(file.arrayBuffer()
+        .then(b => window.crypto.subtle.digest("SHA-256", b))
+        .then(h => {
+          sum = btoa(String.fromCharCode(...new Uint8Array(h)));
+          return fetch(`/upload/${file.name}`, {
+            method: 'POST',
+            headers: {
+              "Content-Type": "application/octet-stream",
+            },
+            body: file
+          })
+        })
+        .then(r => r.json())
+        .then(r => {
+          if (r.status && r.status != 200) {
+            throw new Error(JSON.stringify(r));
+          }
+          uploadedFiles.push(r.name);
+          if (r.sum != sum) {
+            filesList.innerHTML = uploadedFiles.map(f => `<li><span style="color: red">${f}</span></li>`).join("");
+          } else {
+            uploaded++;
+            progress.innerText = `Progress: ${uploaded}/${fileList.length}`;
+            filesList.innerHTML = uploadedFiles.map(f => `<li><span style="color: green">${f}</span></li>`).join("");
+          }
+        })
+      );
+    }
+
+    Promise.all(uploads)
+      .then(() => {
+        files.value = null;
+        btn.disabled = false;
+      })
+      .catch(e => {
+        files.value = null;
+        btn.disabled = false;
+      });
+  });
+</script>
+
+</html>

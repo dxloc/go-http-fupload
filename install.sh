@@ -46,7 +46,7 @@ if [ "${FUPLOAD_CONFIG}" = "" ]; then
 fi
 
 mkdir -p ${BUILD_DIR}/${PKG_NAME}/${PREFIX}/usr/bin
-mkdir -p ${BUILD_DIR}/${PKG_NAME}/${PREFIX}/usr/share
+mkdir -p ${BUILD_DIR}/${PKG_NAME}/${PREFIX}/usr/share/fupload
 mkdir -p ${BUILD_DIR}/${PKG_NAME}/${PREFIX}/usr/share/bash-completion/completions
 mkdir -p ${BUILD_DIR}/${PKG_NAME}/${PREFIX}/etc/fupload.d
 mkdir -p ${BUILD_DIR}/${PKG_NAME}/${PREFIX}/etc/systemd/system/
@@ -71,6 +71,9 @@ sed "s/\/\/__ATTACHED_VERSION__/cmd.Version = \"${VERSION}\"/g" ${ROOT}/fupload.
 
 # Build binary
 go build -C ${BUILD_DIR}/tmp/ -o ${BUILD_DIR}/${PKG_NAME}/${PREFIX}/usr/bin/fupload
+
+# Install client
+cp -r ${ROOT}/client/* ${BUILD_DIR}/${PKG_NAME}/${PREFIX}/usr/share/fupload
 
 # Bash completion
 ${BUILD_DIR}/${PKG_NAME}/${PREFIX}/usr/bin/fupload --bash-completion > ${BUILD_DIR}/${PKG_NAME}/${PREFIX}/usr/share/bash-completion/completions/fupload
