@@ -133,4 +133,13 @@ chmod +x ${BUILD_DIR}/${PKG_NAME}/DEBIAN/postinst
 chmod +x ${BUILD_DIR}/${PKG_NAME}/DEBIAN/postrm
 
 # Build package
-dpkg-deb --build ${BUILD_DIR}/${PKG_NAME}
+echo "Configuring package complete."
+echo ""
+echo "Run the following command to build the package:"
+echo ""
+echo "   dpkg-deb --root-owner-group --build ${BUILD_DIR}/${PKG_NAME} ${BUILD_DIR}/${PKG_NAME}_${VERSION}_all.deb"
+echo ""
+echo "Run the following command to install the package:"
+echo ""
+echo "   sudo apt install ${BUILD_DIR}/${PKG_NAME}_${VERSION}_all.deb"
+echo ""
