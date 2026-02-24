@@ -50,17 +50,20 @@ func PanicHandler(w http.ResponseWriter, r *http.Request) {
 	writer := NewErrorResponseWriter(w)
 	str := fmt.Sprint(e)
 	logger.Error(errors.New(str), "api panic recovered")
-	i := 0
-	for s := range strings.SplitSeq(str, ":") {
-		switch i {
-		case 0:
-			if code, e = strconv.Atoi(s); e != nil {
+	for i, s := range str {
+		if s == ':' {
+			if code, e = strconv.Atoi(str[:i]); e != nil {
 				code = http.StatusInternalServerError
+				msg.WriteString(str)
+			} else {
+				msg.WriteString(str[i+1:])
 			}
-		default:
-			msg.WriteString(strings.TrimSpace(s))
+			break
 		}
-		i++
+	}
+	if code == 0 {
+		code = http.StatusInternalServerError
+		msg.WriteString(str)
 	}
 
 	res := ApiResponse{Status: code, Message: msg.String()}

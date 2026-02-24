@@ -90,6 +90,8 @@
       .catch(e => {
         files.value = null;
         btn.disabled = false;
+        console.error(e);
+        alert(e);
       });
   });
 </script>
