@@ -4,6 +4,7 @@ import (
 	"go-http-fupload/api"
 	"net/http"
 
+	"github.com/dxloc/go-logger"
 	"github.com/gorilla/mux"
 )
 
@@ -24,7 +25,8 @@ var config Config
 
 func UrlValidator(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		for _, c := range r.URL.Path {
+		logger.Debug("url=", r.URL.RawPath)
+		for _, c := range r.URL.RawPath {
 			if c >= 'a' && c <= 'z' {
 				continue
 			}
@@ -34,7 +36,7 @@ func UrlValidator(next http.Handler) http.Handler {
 			if c >= '0' && c <= '9' {
 				continue
 			}
-			if c == '/' || c == '-' || c == '_' || c == '.' {
+			if c == '/' || c == '-' || c == '_' || c == '.' || c == '~' || c == '%' {
 				continue
 			}
 			api.ThrowMessage(http.StatusBadRequest, "invalid URL")

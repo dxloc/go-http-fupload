@@ -7,6 +7,7 @@ import (
 	"go-http-fupload/api"
 	"io"
 	"net/http"
+	"net/url"
 	"os"
 	"strings"
 	"time"
@@ -104,10 +105,16 @@ func Upload(w http.ResponseWriter, r *http.Request) {
 	)
 	path.WriteString(config.UploadDir)
 	path.WriteString("/")
-	url := ProxyPass(r.URL.Path)
-	ss := strings.Split(url, "/")
+	u := ProxyPass(r.URL.Path)
+	ss := strings.Split(u, "/")
 	for i, s := range ss {
 		if s != "" {
+			// Decode URL
+			s, e = url.QueryUnescape(s)
+			if e != nil {
+				logger.Error(e, "decode url")
+				api.ThrowError(http.StatusBadRequest, e)
+			}
 			if i == len(ss)-1 {
 				fname.WriteString(s)
 			} else {

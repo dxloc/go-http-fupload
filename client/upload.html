@@ -57,7 +57,9 @@
         .then(b => window.crypto.subtle.digest("SHA-256", b))
         .then(h => {
           sum = btoa(String.fromCharCode(...new Uint8Array(h)));
-          return fetch(`/upload/${file.name}`, {
+          // URL encode file name
+          let name = encodeURIComponent(file.name);
+          return fetch(`/upload/${name}`, {
             method: 'POST',
             headers: {
               "Content-Type": "application/octet-stream",

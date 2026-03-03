@@ -18,7 +18,7 @@ if [ ! "$(is_exist ${ROOT}/.env)" ]; then
     echo "    PREFIX        - prefix for the package installation (default: '/')"
     echo "    MAINTAINER    - maintainer of the package (default: \$HOSTNAME/\$USER)"
     echo "    PKG_NAME      - name of the package (default: 'go-http-fupload')"
-    echo "    FUPLOAD_CONFIG- configuration path for fupload (default: <PREFIX>/etc/default/fupload.d)"
+    echo "    FUPLOAD_CONFIG- configuration folder path for fupload (default: <PREFIX>/etc/fupload.d)"
     echo ""
     echo "If you don't want to change the default values, just leave the .env file empty."
     exit
@@ -45,10 +45,11 @@ if [ "${FUPLOAD_CONFIG}" = "" ]; then
     FUPLOAD_CONFIG=/etc/fupload.d
 fi
 
+rm -rf ${BUILD_DIR}/
 mkdir -p ${BUILD_DIR}/${PKG_NAME}/${PREFIX}/usr/bin
 mkdir -p ${BUILD_DIR}/${PKG_NAME}/${PREFIX}/usr/share/fupload
 mkdir -p ${BUILD_DIR}/${PKG_NAME}/${PREFIX}/usr/share/bash-completion/completions
-mkdir -p ${BUILD_DIR}/${PKG_NAME}/${PREFIX}/etc/fupload.d
+mkdir -p ${BUILD_DIR}/${PKG_NAME}/${PREFIX}/${FUPLOAD_CONFIG}
 mkdir -p ${BUILD_DIR}/${PKG_NAME}/${PREFIX}/etc/systemd/system/
 mkdir -p ${BUILD_DIR}/${PKG_NAME}/${PREFIX}/DEBIAN
 
