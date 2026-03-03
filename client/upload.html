@@ -57,8 +57,14 @@
         .then(b => window.crypto.subtle.digest("SHA-256", b))
         .then(h => {
           sum = btoa(String.fromCharCode(...new Uint8Array(h)));
-          // URL encode file name
-          let name = encodeURIComponent(file.name);
+          // RFC3986-compliant URL encode
+          let name = encodeURI(file.name)
+            .replace(/%5B/g, "[")
+            .replace(/%5D/g, "]")
+            .replace(
+              /[!'()*]/g,
+              (c) => `%${c.charCodeAt(0).toString(16).toUpperCase()}`,
+            );
           return fetch(`/upload/${name}`, {
             method: 'POST',
             headers: {
