@@ -72,6 +72,10 @@ func ioReadAndSum(r io.Reader, dataType int) ([]byte, string, error) {
 	return data, base64.StdEncoding.EncodeToString(h.Sum(nil)), nil
 }
 
+func isFileNameInvalid(name string) bool {
+	return strings.ContainsAny(name, "<>:\"'|`/\\?*|")
+}
+
 func Upload(w http.ResponseWriter, r *http.Request) {
 	var path strings.Builder
 	var fname strings.Builder
@@ -114,6 +118,9 @@ func Upload(w http.ResponseWriter, r *http.Request) {
 			if e != nil {
 				logger.Error(e, "decode url")
 				api.ThrowError(http.StatusBadRequest, e)
+			}
+			if isFileNameInvalid(s) {
+				api.ThrowMessage(http.StatusBadRequest, "name contains invalid characters")
 			}
 			if i == len(ss)-1 {
 				fname.WriteString(s)
