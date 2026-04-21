@@ -96,12 +96,18 @@ ExecStart=${PREFIX}/usr/bin/fupload -c ${PREFIX}/${FUPLOAD_CONFIG}/config
 WantedBy=multi-user.target
 EOF
 
+# Architecture
+ARCH=$(uname -m)
+if [ "${ARCH}" = "x86_64" ]; then
+    ARCH="amd64"
+fi
+
 # Deb control
 cat > ${BUILD_DIR}/${PKG_NAME}/DEBIAN/control << EOF
 Package: ${PKG_NAME}
 Version: ${VERSION}
 Maintainer: ${MAINTAINER}
-Architecture: all
+Architecture: ${ARCH}
 Description: Golang HTTP File Upload Server
 EOF
 
@@ -133,14 +139,17 @@ EOF
 chmod +x ${BUILD_DIR}/${PKG_NAME}/DEBIAN/postinst
 chmod +x ${BUILD_DIR}/${PKG_NAME}/DEBIAN/postrm
 
+# Debian package
+PACKAGE=${PKG_NAME}_${VERSION}_${ARCH}.deb
+
 # Build package
 echo "Configuring package complete."
 echo ""
 echo "Run the following command to build the package:"
 echo ""
-echo "   dpkg-deb --root-owner-group --build ${BUILD_DIR}/${PKG_NAME} ${BUILD_DIR}/${PKG_NAME}_${VERSION}_all.deb"
+echo "   dpkg-deb --root-owner-group --build ${BUILD_DIR}/${PKG_NAME} ${BUILD_DIR}/${PACKAGE}"
 echo ""
 echo "Run the following command to install the package:"
 echo ""
-echo "   sudo apt install ${BUILD_DIR}/${PKG_NAME}_${VERSION}_all.deb"
+echo "   sudo apt install ${BUILD_DIR}/${PACKAGE}"
 echo ""

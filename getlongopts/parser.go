@@ -95,18 +95,24 @@ func (p *Parser) Parse(args []string) ([]string, error) {
 
 func (p *Parser) BashCompletion(progname string) string {
 	var s strings.Builder
+	var c strings.Builder
 
 	ss := strings.Split(progname, "/")
 	progname = ss[len(ss)-1]
 
 	s.WriteString("#!/bin/bash\n")
-	s.WriteString("_" + progname + "{\n")
+	s.WriteString("_" + progname + "() {\n")
 	s.WriteString("    local cur prev words cword\n")
 	s.WriteString("    _init_completion || return\n")
 	s.WriteString("    case ${prev} in\n")
 	for _, opt := range p.opts {
 		if opt.Short == "" && opt.Long == "" {
 			continue
+		}
+		if opt.Long != "" {
+			c.WriteString(" --" + opt.Long)
+		} else if opt.Short != "" {
+			c.WriteString(" -" + opt.Short)
 		}
 		switch opt.ArgType {
 		case ArgTypeDir:
@@ -139,6 +145,10 @@ func (p *Parser) BashCompletion(progname string) string {
 			s.WriteString("            ;;\n")
 		}
 	}
+	s.WriteString("        *)\n")
+	s.WriteString("            COMPREPLY=( $(compgen -W '" + c.String() + "' -- ${cur}) )\n")
+	s.WriteString("            ;;\n")
+	s.WriteString("    esac\n")
 	s.WriteString("} &&\n")
 	s.WriteString("    complete -o filenames -F _" + progname + " " + progname + "\n")
 	s.WriteString("# ex: ts=4 sw=4 et filetype=sh")
