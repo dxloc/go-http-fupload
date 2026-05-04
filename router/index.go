@@ -2,6 +2,8 @@ package router
 
 import (
 	"cmp"
+	"crypto/sha256"
+	"encoding/base64"
 	"fmt"
 	"go-http-fupload/api"
 	"go-http-fupload/dom"
@@ -18,9 +20,28 @@ type IndexEntry struct {
 	IsDir bool
 	Date  dom.HtmlElement `html:"Date"`
 	Size  dom.HtmlElement `html:"Size (Bytes)"`
+	name  string
+	date  string
+	size  int
 }
 
-func commaFormat(i int64) string {
+type FileEntryResp struct {
+	Name    string `json:"name"`
+	IsDir   bool   `json:"is_dir"`
+	Date    string `json:"date"`
+	Size    int    `json:"size"`
+	Content string `json:"content,omitempty"`
+	Sum     string `json:"sum,omitempty"`
+}
+
+type FolderEntryResp struct {
+	Name    string          `json:"name"`
+	IsDir   bool            `json:"is_dir"`
+	Size    int             `json:"size"`
+	Content []FileEntryResp `json:"content,omitempty"`
+}
+
+func commaFormat(i int) string {
 	s := fmt.Sprintf("%d", i)
 	for i := len(s) - 3; i > 0; i -= 3 {
 		s = s[:i] + "," + s[i:]
@@ -60,24 +81,30 @@ func listFiles(url, folderPath string) []IndexEntry {
 				}
 				fullPath.WriteString(name.String())
 				a := dom.NewElement("a", name.String(), dom.NewHref(fullPath.String()))
-				size := commaFormat(info.Size())
+				sizeInt := int(info.Size())
+				size := commaFormat(sizeInt)
 				if info.IsDir() {
 					size = "-"
+					sizeInt = 0
 				}
 				tz, _ := info.ModTime().Zone()
+				date := fmt.Sprintf(
+					"%04d-%02d-%02d %02d:%02d:%02d UTC%s",
+					info.ModTime().Year(), info.ModTime().Month(), info.ModTime().Day(),
+					info.ModTime().Hour(), info.ModTime().Minute(), info.ModTime().Second(),
+					tz,
+				)
 				ie := IndexEntry{
 					Name:  a.String(),
 					IsDir: info.IsDir(),
 					Size:  dom.NewDiv(size, dom.NewAttr("style", "text-align:right")),
 					Date: dom.NewDiv(
-						fmt.Sprintf(
-							"%04d-%02d-%02d %02d:%02d:%02d UTC%s",
-							info.ModTime().Year(), info.ModTime().Month(), info.ModTime().Day(),
-							info.ModTime().Hour(), info.ModTime().Minute(), info.ModTime().Second(),
-							tz,
-						),
+						date,
 						dom.NewAttr("style", "text-align:center"),
 					),
+					name: name.String(),
+					size: sizeInt,
+					date: date,
 				}
 				ls = append(ls, ie)
 			}
@@ -112,6 +139,7 @@ func Index(w http.ResponseWriter, r *http.Request) {
 
 	uri := ProxyPass(r.URL.Path)
 	path.WriteString(config.DownloadDir)
+	f := r.URL.Query().Get("format")
 
 	for i := 1; i < len(uri); i++ {
 		if uri[i-1] == '/' && uri[i] == '/' {
@@ -127,15 +155,49 @@ func Index(w http.ResponseWriter, r *http.Request) {
 		}
 	} else {
 		if !info.IsDir() {
+			if f == "json" {
+				b, e := os.ReadFile(path.String())
+				if e != nil {
+					logger.Error(e, "read file ", path)
+					api.ThrowError(http.StatusInternalServerError, e)
+				}
+				ie := FileEntryResp{
+					Name:    r.URL.Path,
+					IsDir:   false,
+					Size:    len(b),
+					Content: base64.StdEncoding.EncodeToString(b),
+					Sum:     fmt.Sprintf("%02x", sha256.Sum256(b)),
+				}
+				w := api.NewApiResponseWritter(w)
+				w.Response(http.StatusOK, ie)
+				return
+			}
 			http.ServeFile(w, r, path.String())
 			return
 		} else if r.URL.Path[len(r.URL.Path)-1] != '/' {
 			api.ThrowMessage(http.StatusNotFound, http.StatusText(http.StatusNotFound))
-			return
 		}
 	}
 
 	ls := listFiles(r.URL.Path, path.String())
+	if f == "json" {
+		ie := FolderEntryResp{
+			Name:  r.URL.Path,
+			IsDir: true,
+			Size:  len(ls),
+		}
+		for _, l := range ls {
+			ie.Content = append(ie.Content, FileEntryResp{
+				Name:  l.name,
+				IsDir: l.IsDir,
+				Size:  l.size,
+				Date:  l.date,
+			})
+		}
+		w := api.NewApiResponseWritter(w)
+		w.Response(http.StatusOK, ie)
+		return
+	}
 
 	doc := dom.NewDocument("Simple upload server", "", "")
 	body := doc.Body()
