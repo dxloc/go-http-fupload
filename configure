@@ -97,10 +97,7 @@ WantedBy=multi-user.target
 EOF
 
 # Architecture
-ARCH=$(uname -m)
-if [ "${ARCH}" = "x86_64" ]; then
-    ARCH="amd64"
-fi
+ARCH=$(dpkg --print-architecture)
 
 # Deb control
 cat > ${BUILD_DIR}/${PKG_NAME}/DEBIAN/control << EOF
@@ -153,3 +150,5 @@ echo "Run the following command to install the package:"
 echo ""
 echo "   sudo apt install ${BUILD_DIR}/${PACKAGE}"
 echo ""
+
+cd ${CURDIR}
