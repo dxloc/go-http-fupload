@@ -2,12 +2,12 @@ package cmd
 
 import (
 	"fmt"
-	"go-http-fupload/getlongopts"
 	"go-http-fupload/router"
 	"log"
 	"net/http"
 	"os"
 
+	"github.com/dxloc/go-getlongopts"
 	"github.com/dxloc/go-logger"
 	"gopkg.in/ini.v1"
 )

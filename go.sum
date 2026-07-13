@@ -1,6 +1,8 @@
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
+github.com/dxloc/go-getlongopts v1.0.0 h1:yKGLkCx0MecLzPICba5hhjPWqTMucrMyBZyyCV0D5ew=
+github.com/dxloc/go-getlongopts v1.0.0/go.mod h1:/FF0fF9yACvtC38zCMboZ6CO6I94ky2XyRhHhnI6uqg=
 github.com/dxloc/go-logger v1.0.4 h1:/zOsT78o8Y8gdsarS/gxwMInHAhSO1kaMSIY/t/20Ko=
 github.com/dxloc/go-logger v1.0.4/go.mod h1:DGHCYTM/0vVYq5jZ1hCanBrzjuvWxKDjEoYLA3wZlAU=
 github.com/dxloc/gosort v1.0.0 h1:2LVI6q7p7KYlN/3WPXDoyaGX8az3aQHzNW39dqd9BD0=
