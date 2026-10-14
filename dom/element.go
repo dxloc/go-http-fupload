@@ -26,10 +26,15 @@ func NewElement(tag string, innerText string, a ...HtmlAttr) HtmlElement {
 
 func (e HtmlElement) String() string {
 	var s strings.Builder
-	s.WriteString("<" + e.TagName)
+	s.WriteString("<")
+	s.WriteString(e.TagName)
 	if len(e.Attr) > 0 {
 		for _, a := range e.Attr {
-			s.WriteString(" " + a.Key + "=\"" + a.Value + "\"")
+			s.WriteString(" ")
+			s.WriteString(a.Key)
+			s.WriteString("=\"")
+			s.WriteString(a.Value)
+			s.WriteString("\"")
 		}
 	}
 	if len(e.Children) != 0 || len(e.InnerText) != 0 || e.IsForceEndTag {
@@ -43,7 +48,10 @@ func (e HtmlElement) String() string {
 		for _, c := range e.Children {
 			s.WriteString(c.String())
 		}
-		s.WriteString(e.InnerText + "</" + e.TagName + ">")
+		s.WriteString(e.InnerText)
+		s.WriteString("</")
+		s.WriteString(e.TagName)
+		s.WriteString(">")
 	}
 
 	return s.String()
